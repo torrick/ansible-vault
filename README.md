@@ -40,6 +40,7 @@ vault_dirs:
 #### `vault_config`
 
 - main [configuration](https://www.vaultproject.io/docs/configuration) file
+- example: please see [defaults/example.yml](https://github.com/nahsi/ansible-vault/blob/master/defaults/example.yml)
 
 #### `vault_configs`
 
@@ -64,12 +65,12 @@ vault_dirs:
 #### `vault_service`
 
 - openrc service file
-- default: see [defaults/main.yml](defaults/main.yml)
+- default: see [defaults/main.yml](https://github.com/nahsi/ansible-vault/blob/master/defaults/main.yml)
 
 #### `vault_unitfile`
 
 - systemd unit file
-- default: see [defaults/main.yml](defaults/main.yml)
+- default: see [defaults/main.yml](https://github.com/nahsi/ansible-vault/blob/master/defaults/main.yml)
 
 #### `skip_handlers`
 
