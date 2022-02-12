@@ -1,0 +1,11 @@
+- name: restart vault
+  service:
+    name: vault
+    state: restarted
+  when: not skip_handlers
+
+- name: reload vault
+  service:
+    name: vault
+    state: reloaded
+  when: not skip_handlers

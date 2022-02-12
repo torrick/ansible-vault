@@ -1,0 +1,86 @@
+skip_handlers: false
+
+vault_download_url: "https://releases.hashicorp.com"
+
+vault_configs: {}
+
+vault_user: "vault"
+vault_group: "vault"
+
+vault_dir: "/opt/vault"
+vault_dirs:
+  main:
+    path: "{{ vault_dir }}"
+  configs:
+    path: "{{ vault_dir }}/config.d"
+  certs:
+    path: "{{ vault_dir }}/certs"
+  data:
+    path: "/var/lib/vault"
+    mode: "u=rwX,g=rX,o="
+  logs:
+    path: "/var/log/vault"
+
+vault_service: |
+  #!/sbin/openrc-run
+
+  description="HashiCorp Vault - A tool for managing secrets"
+
+  group="${RC_SVCNAME}"
+  user="${RC_SVCNAME}"
+
+  supervisor="supervise-daemon"
+  pidfile="/run/${RC_SVCNAME}.pid"
+  command="/usr/bin/${RC_SVCNAME}"
+  command_args="server -config={{ vault_dir }}/vault.json -config={{ vault_dirs.configs.path }}"
+  command_background="true"
+  extra_started_commands="reload"
+
+  output_log="{{ vault_dirs.logs.path }}/vault.log"
+  error_log="{{ vault_dirs.logs.path }}/vault.log"
+
+  depend() {
+    need net
+  }
+
+  reload() {
+    ebegin "Reloading vault"
+    ${supervisor} ${RC_SVCNAME} --signal HUP --pidfile "${PIDFILE}"
+    eend $?
+  }
+
+vault_unit: |
+  [Unit]
+  Description="HashiCorp Vault - A tool for managing secrets"
+  Documentation=https://www.vaultproject.io/docs/
+  Requires=network-online.target
+  After=network-online.target
+  ConditionFileNotEmpty={{ vault_dir }}/vault.json
+  StartLimitIntervalSec=60
+  StartLimitBurst=3
+
+  [Service]
+  User=vault
+  Group=vault
+  ProtectSystem=full
+  ProtectHome=read-only
+  PrivateTmp=yes
+  PrivateDevices=yes
+  SecureBits=keep-caps
+  AmbientCapabilities=CAP_IPC_LOCK
+  CapabilityBoundingSet=CAP_SYSLOG CAP_IPC_LOCK
+  NoNewPrivileges=yes
+  ExecStart=/usr//bin/vault server -config={{ vault_dir }}/vault.json -config={{ vault_dirs.configs.path }}
+  ExecReload=/bin/kill --signal HUP $MAINPID
+  KillMode=process
+  KillSignal=SIGINT
+  Restart=on-failure
+  RestartSec=5
+  TimeoutStopSec=30
+  StartLimitInterval=60
+  StartLimitBurst=3
+  LimitNOFILE=65536
+  LimitMEMLOCK=infinity
+
+  [Install]
+  WantedBy=multi-user.target
