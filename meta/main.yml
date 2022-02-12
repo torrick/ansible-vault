@@ -1,7 +1,8 @@
 galaxy_info:
   namespace: nahsi
   author: Anatoly Laskaris
-  description: Role to manage HashiCorp Vault
+  role_name: vault
+  description: Manage HashiCorp Vault
   license: MIT
   min_ansible_version: 2.10
 
