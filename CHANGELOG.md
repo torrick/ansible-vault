@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.3](https://github.com/nahsi/ansible-vault/compare/v1.0.2...v1.0.3) (2022-08-10)
+
+
+### Bug Fixes
+
+* Set checksum with preflight task ([#49](https://github.com/nahsi/ansible-vault/issues/49)) ([51613e8](https://github.com/nahsi/ansible-vault/commit/51613e8a643130e5e1136c661274301465a53525))
+
 ### [1.0.2](https://github.com/nahsi/ansible-vault/compare/v1.0.1...v1.0.2) (2022-02-21)
 
 
