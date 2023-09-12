@@ -1,11 +1,11 @@
 - name: Preflight
   tags: always
-  include_tasks: 00-preflight.yml
+  include_tasks: "{{ _os }}/00-preflight.yml"
 
 - name: Install and configure Vault
   tags: config
-  include_tasks: 01-install.yml
+  include_tasks: "{{ _os }}/01-install.yml"
 
 - name: Manage configs
   tags: config
-  include_tasks: 02-configs.yml
+  include_tasks: "{{ _os }}/02-configs.yml"

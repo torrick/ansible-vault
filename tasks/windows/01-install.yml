@@ -1,0 +1,117 @@
+- name: download vault to localhost
+  become: false
+  run_once: true
+  delegate_to: localhost
+  get_url:
+    url: "{{ _archive_url }}"
+    dest: "{{ role_path }}/files/{{ _archive }}"
+    checksum: "sha256:{{ _archive_checksum }}"
+  register: _download_archive
+  until: _download_archive is succeeded
+  retries: 5
+  delay: 2
+
+- name: create vault system group
+  group:
+    name: "{{ vault_group }}"
+    system: true
+    state: present
+
+- name: create vault system user
+  user:
+    name: "{{ vault_user }}"
+    system: true
+    shell: "/sbin/nologin"
+    group: "{{ vault_group }}"
+    create_home: false
+    state: present
+
+- name: create vault directories
+  file:
+    path: "{{ dir.value.path }}"
+    state: directory
+    owner: "{{ dir.group | default('vault') }}"
+    group: "{{ dir.group | default('vault') }}"
+    mode: "{{ dir.value.mode | default(755) }}"
+  loop: "{{ vault_dirs | dict2items }}"
+  loop_control:
+    loop_var: dir
+    label: "{{ dir.key }}"
+
+- name: create archive directory
+  become: false
+  delegate_to: localhost
+  file:
+    state: directory
+    path: "{{ _archive_dir }}"
+
+- name: unpack vault
+  become: false
+  delegate_to: localhost
+  unarchive:
+    src: "{{ role_path }}/files/{{ _archive }}"
+    dest: "{{ _archive_dir }}"
+    creates: "{{ _archive_dir }}/vault"
+
+- name: propagate vault binary
+  copy:
+    src: "{{ _archive_dir }}/vault"
+    dest: "/usr/bin/vault"
+    owner: root
+    group: root
+    mode: 0555
+  notify: restart vault
+
+- name: delete archive directory
+  become: false
+  run_once: true
+  delegate_to: localhost
+  file:
+    dest: "{{ _archive_dir }}"
+    state: absent
+  when: not lookup("env", "MOLECULE_SCENARIO_NAME") | default("")
+
+- name: create vault config
+  tags: config
+  copy:
+    content: "{{ vault_config | to_nice_json }}"
+    dest: "{{ vault_dirs.main.path }}/vault.json"
+    owner: "{{ vault_user }}"
+    group: "{{ vault_group }}"
+    mode: 0640
+  notify: restart vault
+
+- name: create vault service file
+  tags: config
+  copy:
+    content: "{{ vault_service }}"
+    dest: "/etc/init.d/vault"
+    owner: root
+    group: root
+    mode: 0755
+  notify: restart vault
+  when: ansible_service_mgr == "openrc"
+
+- name: enable vault
+  service:
+    name: vault
+    enabled: true
+  when: ansible_service_mgr == "openrc"
+
+- name: create vault unit file
+  tags: config
+  copy:
+    content: "{{ vault_unit }}"
+    dest: "/etc/systemd/system/vault.service"
+    owner: root
+    group: root
+    mode: 0755
+  notify: restart vault
+  when: ansible_service_mgr == "systemd"
+
+- name: enable vault
+  systemd:
+    name: vault
+    enabled: true
+    daemon_reload: true
+  when: ansible_service_mgr == "systemd"

@@ -7,19 +7,36 @@ vault_configs: {}
 vault_user: "vault"
 vault_group: "vault"
 
-vault_dir: "/opt/vault"
-vault_dirs:
-  main:
-    path: "{{ vault_dir }}"
-  configs:
-    path: "{{ vault_dir }}/config.d"
-  certs:
-    path: "{{ vault_dir }}/certs"
-  data:
-    path: "/var/lib/vault"
-    mode: "u=rwX,g=rX,o="
-  logs:
-    path: "/var/log/vault"
+vault_dir: "{{ _os_vault_dir[_os] }}"
+vault_dirs: "{{ _os_vault_dirs[_os] }}"
+
+_os_vault_dir: 
+  linux: "/opt/vault"
+  windows: "{{ ansible_env.SystemDrive | default(omit) }}\\opt\\vault"
+_os_vault_dirs:
+  linux:
+    main:
+      path: "{{ vault_dir }}"
+    configs:
+      path: "{{ vault_dir }}/config.d"
+    certs:
+      path: "{{ vault_dir }}/certs"
+    data:
+      path: "/var/lib/vault"
+      mode: "u=rwX,g=rX,o="
+    logs:
+      path: "/var/log/vault"
+  windows:
+    main:
+      path: "{{ vault_dir }}"
+    configs:
+      path: "{{ vault_dir }}\\config"
+    certs:
+      path: "{{ vault_dir }}\\tls"
+    data:
+      path: "{{ vault_dir }}\\data"
+    logs:
+      path: "{{ vault_dir }}\\logs"
 
 vault_service: |
   #!/sbin/openrc-run

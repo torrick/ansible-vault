@@ -1,0 +1,21 @@
+- name: Prepare
+  become: true
+  hosts: all
+  tasks:
+    - name: create consul directories
+      win_file:
+        path: "{{ item }}"
+        state: directory
+      loop:
+        - "{{ ansible_env.SystemDrive }}\opt\consul\service.d"
+        - "{{ ansible_env.SystemDrive }}\opt\consul\config.d"
+        - "{{ ansible_env.SystemDrive }}\opt\consul\script.d"
+
+    - name: create dummy files
+      win_file:
+        path: "{{ item }}"
+        state: touch
+      loop:
+        - "{{ ansible_env.SystemDrive }}\opt\consul\service.d\dummy.json"
+        - "{{ ansible_env.SystemDrive }}\opt\consul\config.d\dummy.json"
+        - "{{ ansible_env.SystemDrive }}\opt\consul\script.d\dummy.sh"
